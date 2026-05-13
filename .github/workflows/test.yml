@@ -1,13 +1,10 @@
-name: CI
+name: Test
 
 on:
   push:
-    branches-ignore:
-      - main
-  pull_request:
 
 jobs:
-  ci:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
