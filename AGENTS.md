@@ -67,3 +67,13 @@ npm run check       # biome lint + format check
 ## Commit conventions
 
 Follow semantic commits: `feat:`, `fix:`, `chore:`, `test:`, `docs:`.
+
+## Git workflow
+
+- **Never rebase.** Always integrate remote changes with a merge commit:
+  ```bash
+  git pull --no-rebase   # merge, not rebase
+  git push
+  ```
+- Fast-forward is fine when it applies naturally; use `--no-rebase` to ensure merge
+  semantics when the remote has diverged.
