@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/vantreeseba/graphql-mocks/compare/v1.0.0...v1.0.1) (2026-05-13)
+
+
+### Bug Fixes
+
+* **release:** set publishConfig access to public for scoped package ([11c6b66](https://github.com/vantreeseba/graphql-mocks/commit/11c6b6656bd1449a7e8cc8e230232390170d84bd))
+
 # 1.0.0 (2026-05-13)
 
 
