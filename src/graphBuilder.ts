@@ -1,0 +1,128 @@
+import type { Faker } from '@faker-js/faker';
+import {
+  type GraphQLObjectType,
+  type GraphQLSchema,
+  isEnumType,
+  isInterfaceType,
+  isObjectType,
+  isScalarType,
+  isUnionType,
+} from 'graphql';
+import { OPERATION_TYPE_NAMES, resolveCount, resolveFaker } from './helpers.js';
+import { mockTypeScalars, unwrapType } from './typeMocker.js';
+import type { BuildMocksOptions, MockResult } from './types.js';
+
+/** Pick a random element from an array; returns undefined if empty. */
+function pickRandom<T>(arr: T[], faker: Faker): T | undefined {
+  return arr.length === 0 ? undefined : faker.helpers.arrayElement(arr);
+}
+
+/** Pick a random subset of an array (1 to min(5, length) items). */
+function pickSubset<T>(arr: T[], faker: Faker): T[] {
+  if (arr.length === 0) return [];
+  return faker.helpers.arrayElements(arr, {
+    min: 1,
+    max: Math.min(5, arr.length),
+  });
+}
+
+function createMockResult(pool: Record<string, unknown[]>): MockResult {
+  const helpers = {
+    find<T = unknown>(typeName: string, predicate: (item: T) => boolean): T | undefined {
+      const items = pool[typeName] as T[] | undefined;
+      return items?.find(predicate);
+    },
+    toResolvers(): Record<string, () => unknown> {
+      const resolvers: Record<string, () => unknown> = {};
+      for (const [typeName, items] of Object.entries(pool)) {
+        const captured = items;
+        resolvers[typeName] = () => {
+          if (captured.length === 0) return null;
+          return captured[Math.floor(Math.random() * captured.length)];
+        };
+      }
+      return resolvers;
+    },
+  };
+  return Object.assign({}, pool, helpers) as MockResult;
+}
+
+export function buildGraph(schema: GraphQLSchema, options: BuildMocksOptions): MockResult {
+  const faker = resolveFaker(options);
+
+  // Collect all non-operation, non-builtin object types
+  const typeMap = schema.getTypeMap();
+  const objectTypes = Object.values(typeMap).filter(
+    (t): t is GraphQLObjectType =>
+      isObjectType(t) && !t.name.startsWith('__') && !OPERATION_TYPE_NAMES.has(t.name),
+  );
+
+  // Phase 1: generate N instances per type with scalar/enum fields only
+  const pool: Record<string, Record<string, unknown>[]> = {};
+  for (const objectType of objectTypes) {
+    const count = resolveCount(objectType.name, options.count);
+    pool[objectType.name] = Array.from({ length: count }, () =>
+      mockTypeScalars(objectType, faker, options),
+    );
+  }
+
+  // Phase 2: wire relationship fields from the pool
+  for (const objectType of objectTypes) {
+    const instances = pool[objectType.name] ?? [];
+    const fields = objectType.getFields();
+    const nullChance = options.nullChance ?? 0;
+
+    for (const instance of instances) {
+      for (const [fieldName, field] of Object.entries(fields)) {
+        // Skip fields already set in phase 1 or via overrides
+        if (fieldName in instance) continue;
+
+        const { namedType, isRequired, isList } = unwrapType(field.type);
+
+        // Scalar/enum already handled in phase 1
+        if (isScalarType(namedType) || isEnumType(namedType)) continue;
+
+        // Apply null chance for nullable relationship fields
+        if (!isRequired && nullChance > 0 && faker.datatype.boolean({ probability: nullChance })) {
+          instance[fieldName] = null;
+          continue;
+        }
+
+        if (isObjectType(namedType)) {
+          const relatedPool = pool[namedType.name] ?? [];
+          if (relatedPool.length === 0) {
+            instance[fieldName] = isList ? [] : null;
+            continue;
+          }
+          instance[fieldName] = isList
+            ? pickSubset(relatedPool, faker)
+            : pickRandom(relatedPool, faker);
+          continue;
+        }
+
+        if (isInterfaceType(namedType) || isUnionType(namedType)) {
+          if (!options.resolveType) {
+            console.warn(
+              `[graphql-mocks] Field "${objectType.name}.${fieldName}" returns abstract type "${namedType.name}" — provide resolveType option to mock it`,
+            );
+            instance[fieldName] = null;
+            continue;
+          }
+          const concreteName = options.resolveType(namedType.name);
+          const concretePool = pool[concreteName] ?? [];
+          instance[fieldName] = isList
+            ? pickSubset(concretePool, faker)
+            : pickRandom(concretePool, faker);
+        }
+      }
+    }
+  }
+
+  // Build the final MockResult from the completed pool
+  const typedPool: Record<string, unknown[]> = {};
+  for (const [typeName, instances] of Object.entries(pool)) {
+    typedPool[typeName] = instances;
+  }
+
+  return createMockResult(typedPool);
+}
