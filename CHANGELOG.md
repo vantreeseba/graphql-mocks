@@ -1,3 +1,10 @@
+## [1.0.3](https://github.com/vantreeseba/graphql-mocks/compare/v1.0.2...v1.0.3) (2026-05-13)
+
+
+### Bug Fixes
+
+* **test:** trigger release to validate new CI workflow ([7ca1197](https://github.com/vantreeseba/graphql-mocks/commit/7ca119775eec1791d6681a748833364380b59618))
+
 ## [1.0.2](https://github.com/vantreeseba/graphql-mocks/compare/v1.0.1...v1.0.2) (2026-05-13)
 
 
