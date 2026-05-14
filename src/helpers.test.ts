@@ -1,5 +1,7 @@
+import { faker as defaultFaker } from '@faker-js/faker';
+import { Faker, en } from '@faker-js/faker';
 import { describe, expect, it } from 'vitest';
-import { OPERATION_TYPE_NAMES, resolveCount } from './helpers.js';
+import { OPERATION_TYPE_NAMES, resolveCount, resolveFaker } from './helpers.js';
 
 describe('resolveCount', () => {
   it('returns default 5 when no config provided', () => {
@@ -26,6 +28,35 @@ describe('resolveCount', () => {
 
   it('respects custom built-in default argument', () => {
     expect(resolveCount('User', undefined, 7)).toBe(7);
+  });
+});
+
+describe('resolveFaker', () => {
+  it('returns a faker instance when no options given', () => {
+    const f = resolveFaker({});
+    expect(typeof f.lorem.word()).toBe('string');
+  });
+
+  it('returns the provided faker instance', () => {
+    const custom = new Faker({ locale: en });
+    const f = resolveFaker({ faker: custom });
+    expect(f).toBe(custom);
+  });
+
+  it('seeds the provided faker instance', () => {
+    const f1 = new Faker({ locale: en });
+    const f2 = new Faker({ locale: en });
+    resolveFaker({ faker: f1, seed: 99 });
+    resolveFaker({ faker: f2, seed: 99 });
+    expect(f1.lorem.word()).toBe(f2.lorem.word());
+  });
+
+  it('seeds the default faker when no faker provided', () => {
+    resolveFaker({ seed: 42 });
+    const word1 = defaultFaker.lorem.word();
+    resolveFaker({ seed: 42 });
+    const word2 = defaultFaker.lorem.word();
+    expect(word1).toBe(word2);
   });
 });
 
