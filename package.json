@@ -1,6 +1,6 @@
 {
   "name": "@vantreeseba/graphql-mocks",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Generate realistic, graph-connected mock data from a GraphQL schema using faker",
   "type": "module",
   "exports": {
