@@ -1,3 +1,10 @@
+## [1.0.4](https://github.com/vantreeseba/graphql-mocks/compare/v1.0.3...v1.0.4) (2026-05-14)
+
+
+### Bug Fixes
+
+* codebase cleanup and accuracy pass ([9ac2162](https://github.com/vantreeseba/graphql-mocks/commit/9ac2162349eabbc85ffcf82efd7d606555dc06a4))
+
 ## [1.0.3](https://github.com/vantreeseba/graphql-mocks/compare/v1.0.2...v1.0.3) (2026-05-13)
 
 
