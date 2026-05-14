@@ -150,6 +150,14 @@ describe('buildGraph', () => {
     expect(parent.child).toBeNull();
   });
 
+  it('toResolvers() returns items from the pool', () => {
+    const result = buildGraph(schema, { faker, seed: 42 });
+    const resolvers = result.toResolvers();
+    expect(result.User).toContain(resolvers.User?.());
+    expect(result.Todo).toContain(resolvers.Todo?.());
+    expect(result.Post).toContain(resolvers.Post?.());
+  });
+
   it('uses resolveType to wire abstract type fields', () => {
     const abstractSchema = buildSchema(`
       interface Node { id: ID! }
@@ -163,5 +171,45 @@ describe('buildGraph', () => {
     });
     const foo = result.Foo?.[0] as Record<string, unknown>;
     expect(result.Bar).toContain(foo.node);
+  });
+
+  it('uses resolveType to wire abstract list type fields', () => {
+    const s = buildSchema(`
+      interface Node { id: ID! }
+      type Foo { id: ID!, nodes: [Node!]! }
+      type Bar implements Node { id: ID!, label: String! }
+    `);
+    const result = buildGraph(s, { faker, seed: 1, resolveType: () => 'Bar' });
+    const foo = result.Foo?.[0] as Record<string, unknown>;
+    expect(Array.isArray(foo.nodes)).toBe(true);
+    for (const node of foo.nodes as unknown[]) {
+      expect(result.Bar).toContain(node);
+    }
+  });
+
+  it('warns when resolveType returns an unknown type name', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const s = buildSchema(`
+      interface Node { id: ID! }
+      type Foo { id: ID!, node: Node }
+      type Bar implements Node { id: ID!, label: String! }
+    `);
+    const result = buildGraph(s, { faker, seed: 1, resolveType: () => 'NonExistent' });
+    const foo = result.Foo?.[0] as Record<string, unknown>;
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('NonExistent'));
+    expect(foo.node).toBeUndefined();
+    warnSpy.mockRestore();
+  });
+
+  it('applies field overrides to relationship fields', () => {
+    const customUser = { id: 'custom', name: 'Custom' };
+    const result = buildGraph(schema, {
+      faker,
+      seed: 1,
+      overrides: { Todo: { user: () => customUser } },
+    });
+    for (const todo of (result.Todo ?? []) as Record<string, unknown>[]) {
+      expect(todo.user).toBe(customUser);
+    }
   });
 });

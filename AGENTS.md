@@ -19,7 +19,7 @@ All feature requirements and API contracts are in [specifications.md](./specific
 - **Formatting/linting:** Biome (`npm run check`)
 - **Build:** `tsc` (`npm run build`) — outputs to `dist/`
 - **Peer deps:** `graphql >=16`, `@faker-js/faker >=9`
-- **Optional peer dep:** `graphql-scalars ^1.23` (enables richer scalar mocking)
+- **Optional peer dep:** `graphql-scalars ^1.23` (scalar names from this package are recognized by convention; the library is not imported at runtime)
 - **No lodash** — inline any string utilities needed
 
 ## Project structure
@@ -28,14 +28,13 @@ All feature requirements and API contracts are in [specifications.md](./specific
 src/
   index.ts              — public API entry point
   mockSchema.ts         — main buildMocks() function
-  scalarMockers.ts      — default scalar → faker mapping (+ graphql-scalars map)
+  scalarMockers.ts      — default scalar → faker mapping
   typeMocker.ts         — per-type field mock generator
   graphBuilder.ts       — assembles cross-type relationships into a graph
   helpers.ts            — utility functions
   types.ts              — all public TypeScript types
 
-test/
-  fixtures/
+  test/
     schema.ts           — test GraphQL schema (rich, with custom scalars)
   *.test.ts             — tests live alongside source modules
 ```
@@ -45,10 +44,9 @@ test/
 - All exports go through `src/index.ts`
 - Default scalar mockers: `String → faker.lorem.word()`, `Int → faker.number.int()`, etc.
 - Unknown scalars fall back to `faker.lorem.word()` and emit `console.warn`
-- Custom scalars (e.g. `CityName`, `EmailAddress`) map to semantic faker calls
-- `graphql-scalars` scalar names are detected and given appropriate faker calls
-- Nullable fields have a configurable chance of being `null` (default 20%)
-- List fields generate a configurable number of items (default 2–5)
+- Custom scalar names (e.g. `CityName`, `EmailAddress`) map to semantic faker calls
+- Nullable fields have a configurable chance of being `null` (default 0)
+- Scalar list fields generate 1–3 items; relationship list fields generate 1–5 items
 - Circular references are resolved: back-references point to already-generated objects, not new ones
 - User scalar overrides merge over the default map (user wins)
 - Coverage target: ≥90% lines/branches

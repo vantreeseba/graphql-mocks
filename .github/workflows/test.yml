@@ -27,3 +27,6 @@ jobs:
 
       - name: Coverage
         run: npm run coverage
+
+      - name: Build
+        run: npm run build

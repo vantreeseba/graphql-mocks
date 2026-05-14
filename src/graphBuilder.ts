@@ -26,7 +26,7 @@ function pickSubset<T>(arr: T[], faker: Faker): T[] {
   });
 }
 
-function createMockResult(pool: Record<string, unknown[]>): MockResult {
+function createMockResult(pool: Record<string, unknown[]>, faker: Faker): MockResult {
   const helpers = {
     find<T = unknown>(typeName: string, predicate: (item: T) => boolean): T | undefined {
       const items = pool[typeName] as T[] | undefined;
@@ -38,7 +38,7 @@ function createMockResult(pool: Record<string, unknown[]>): MockResult {
         const captured = items;
         resolvers[typeName] = () => {
           if (captured.length === 0) return null;
-          return captured[Math.floor(Math.random() * captured.length)];
+          return faker.helpers.arrayElement(captured);
         };
       }
       return resolvers;
@@ -109,6 +109,11 @@ export function buildGraph(schema: GraphQLSchema, options: BuildMocksOptions): M
             continue;
           }
           const concreteName = options.resolveType(namedType.name);
+          if (!(concreteName in pool)) {
+            console.warn(
+              `[graphql-mocks] resolveType returned unknown type "${concreteName}" for "${namedType.name}" — field will be null/empty`,
+            );
+          }
           const concretePool = pool[concreteName] ?? [];
           instance[fieldName] = isList
             ? pickSubset(concretePool, faker)
@@ -118,11 +123,5 @@ export function buildGraph(schema: GraphQLSchema, options: BuildMocksOptions): M
     }
   }
 
-  // Build the final MockResult from the completed pool
-  const typedPool: Record<string, unknown[]> = {};
-  for (const [typeName, instances] of Object.entries(pool)) {
-    typedPool[typeName] = instances;
-  }
-
-  return createMockResult(typedPool);
+  return createMockResult(pool as Record<string, unknown[]>, faker);
 }

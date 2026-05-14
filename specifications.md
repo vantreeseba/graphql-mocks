@@ -123,11 +123,19 @@ Built-in scalar → faker mapping (user overrides win):
 | `Latitude` / `Longitude` | `faker.location.latitude/longitude()` |
 | `IPv4` / `IPv6` / `MAC` / `Port` | faker.internet counterparts |
 | `HexColorCode` | `faker.color.rgb({ format: 'hex' })` |
+| `RGB` | CSS `rgb(r,g,b)` string |
+| `RGBA` | CSS `rgba(r,g,b,a)` string |
 | `Slug` | slugified lorem words |
 | `Rating` | `faker.number.int({ min: 1, max: 5 })` |
 | `Currency` | `faker.finance.currencyCode()` |
 | `JSON` / `JSONObject` | `{ key: lorem, value: lorem }` |
 | `BigInt` | `BigInt(...)` |
+| `Long` | `faker.number.int({ min: 0, max: 2_147_483_647 })` |
+| `UnsignedInt` | `faker.number.int({ min: 0, max: 1000 })` |
+| `UnsignedFloat` | `faker.number.float({ min: 0, max: 1000 })` |
+| `Decimal` | float as string |
+| `Byte` | `faker.number.int({ min: 0, max: 255 })` |
+| `Upload` | `null` |
 | Any unknown scalar | `faker.lorem.word()` + `console.warn` |
 
 Custom scalars like `CityName`, `Slug`, `Rating` are included in the defaults by name-based detection. Extend via the `scalars` option for any scalar not in this list.

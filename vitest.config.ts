@@ -8,6 +8,7 @@ export default defineConfig({
       include: ['src/**/*.ts'],
       exclude: [
         'src/**/*.test.ts',
+        'src/index.ts', // pure re-exports, no runtime logic
         'src/types.ts', // pure type declarations, no runtime code
         'src/test/**', // test fixtures
       ],
