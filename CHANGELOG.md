@@ -1,3 +1,10 @@
+# [2.1.0](https://github.com/vantreeseba/graphql-mocks/compare/v2.0.1...v2.1.0) (2026-06-19)
+
+
+### Features
+
+* add @vantreeseba/graphql-mocks-codegen package ([2a1a8b8](https://github.com/vantreeseba/graphql-mocks/commit/2a1a8b80913b358375be37c19865bc39aba8efb2))
+
 ## [2.0.1](https://github.com/vantreeseba/graphql-mocks/compare/v2.0.0...v2.0.1) (2026-06-19)
 
 
