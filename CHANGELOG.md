@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/vantreeseba/graphql-mocks/compare/v1.0.5...v1.1.0) (2026-06-19)
+
+
+### Features
+
+* typed pools + DX options (__typename, stableIds, faker in overrides) ([7c799e5](https://github.com/vantreeseba/graphql-mocks/commit/7c799e564827d6d4e75f020e4d99c5692d270d6b))
+
 # Unreleased
 
 ### Features
