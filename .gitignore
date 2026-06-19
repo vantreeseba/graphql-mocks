@@ -2,3 +2,4 @@ node_modules/
 dist/
 coverage/
 *.lcov
+__integration_tmp__/
