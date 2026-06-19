@@ -8,11 +8,20 @@ import type { BuildMocksOptions, MockResult } from './types.js';
  * @param schema - A compiled `GraphQLSchema` or an SDL string.
  * @param options - Optional configuration (count, faker, seed, scalars, overrides, etc.).
  * @returns A `MockResult` with pools keyed by type name plus `find()` and `toResolvers()` helpers.
+ *
+ * @typeParam TTypes - Optional map of type name → object shape. When supplied, the matching
+ * pools come back typed (`mocks.User` is `User[]`) instead of `unknown[]`, removing the need
+ * to cast at the call site:
+ *
+ * ```ts
+ * const mocks = buildMocks<{ User: UserFragment }>(schema, { count: { User: 40 } });
+ * const users = mocks.User; // UserFragment[]
+ * ```
  */
-export function buildMocks(
+export function buildMocks<TTypes extends Record<string, unknown> = Record<string, unknown>>(
   schema: GraphQLSchema | string,
   options: BuildMocksOptions = {},
-): MockResult {
+): MockResult<TTypes> {
   let resolvedSchema: GraphQLSchema;
 
   if (typeof schema === 'string') {
@@ -25,5 +34,5 @@ export function buildMocks(
     );
   }
 
-  return buildGraph(resolvedSchema, options);
+  return buildGraph(resolvedSchema, options) as MockResult<TTypes>;
 }

@@ -212,4 +212,57 @@ describe('buildGraph', () => {
       expect(todo.user).toBe(customUser);
     }
   });
+
+  it('adds __typename by default', () => {
+    const result = buildGraph(schema, { faker, seed: 1 });
+    for (const user of (result.User ?? []) as Record<string, unknown>[]) {
+      expect(user.__typename).toBe('User');
+    }
+  });
+
+  it('omits __typename when addTypename is false', () => {
+    const result = buildGraph(schema, { faker, seed: 1, addTypename: false });
+    for (const user of (result.User ?? []) as Record<string, unknown>[]) {
+      expect('__typename' in user).toBe(false);
+    }
+  });
+
+  it('assigns stable TypeName-<index> ids when stableIds is on', () => {
+    const result = buildGraph(schema, { faker, seed: 1, stableIds: true });
+    const users = (result.User ?? []) as Record<string, unknown>[];
+    users.forEach((user, index) => {
+      expect(user.id).toBe(`User-${index}`);
+    });
+  });
+
+  it('lets an explicit id override win over stableIds', () => {
+    const result = buildGraph(schema, {
+      faker,
+      seed: 1,
+      stableIds: true,
+      overrides: { User: { id: () => 'fixed-id' } },
+    });
+    for (const user of (result.User ?? []) as Record<string, unknown>[]) {
+      expect(user.id).toBe('fixed-id');
+    }
+  });
+
+  it('passes the seeded faker to override functions', () => {
+    const seen: unknown[] = [];
+    buildGraph(schema, {
+      faker,
+      seed: 1,
+      overrides: { User: { name: (f) => f.person.firstName() } },
+    });
+    const a = buildGraph(schema, {
+      faker,
+      seed: 99,
+      overrides: { User: { name: (f) => seen.push(f) && f.person.firstName() } },
+    });
+    // The override receives a faker instance (not undefined) and produces a string.
+    expect(seen.length).toBeGreaterThan(0);
+    for (const user of (a.User ?? []) as Record<string, unknown>[]) {
+      expect(typeof user.name).toBe('string');
+    }
+  });
 });

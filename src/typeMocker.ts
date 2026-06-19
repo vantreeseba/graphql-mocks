@@ -60,7 +60,7 @@ export function mockTypeScalars(
 
   for (const [fieldName, field] of Object.entries(fields)) {
     if (typeOverrides[fieldName]) {
-      result[fieldName] = typeOverrides[fieldName]?.();
+      result[fieldName] = typeOverrides[fieldName]?.(faker);
       continue;
     }
 

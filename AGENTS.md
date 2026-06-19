@@ -10,7 +10,7 @@ Takes a `GraphQLSchema` (or SDL string), introspects all object types, and produ
 
 ## Specifications
 
-All feature requirements and API contracts are in [specifications.md](./specifications.md).
+The API contract, options, and built-in scalar mocker list are documented in [README.md](./README.md).
 
 ## Stack
 

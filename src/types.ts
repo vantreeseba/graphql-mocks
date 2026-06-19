@@ -1,7 +1,11 @@
 import type { Faker } from '@faker-js/faker';
 
 export type ScalarMocker = (faker: Faker) => unknown;
-export type FieldOverrideFn = () => unknown;
+/**
+ * Per-field override. Receives the same (seeded) faker instance the generator uses, so
+ * overrides stay deterministic under `seed` without importing a separate faker.
+ */
+export type FieldOverrideFn = (faker: Faker) => unknown;
 export type CountConfig = number | { _default?: number; [typeName: string]: number | undefined };
 
 export interface BuildMocksOptions {
@@ -34,15 +38,48 @@ export interface BuildMocksOptions {
    * Return the concrete type name to use when mocking a field of that abstract type.
    */
   resolveType?: (abstractTypeName: string) => string;
+  /**
+   * Add a `__typename` field (set to the type name) to every generated object.
+   * Required by the Apollo cache, so it's on by default.
+   * @default true
+   */
+  addTypename?: boolean;
+  /**
+   * Give every object with an `id` field a stable, unique id of the form `TypeName-<index>`
+   * instead of a random scalar value. Keeps cache keys distinct and output readable.
+   * An explicit `overrides` entry for `id` still wins.
+   * @default false
+   */
+  stableIds?: boolean;
 }
 
-export interface MockHelpers {
+export interface MockHelpers<TTypes extends Record<string, unknown> = Record<string, unknown>> {
+  /**
+   * Find the first pooled item of `typeName` matching the predicate. When `typeName` is a key
+   * of the declared `TTypes` map, the predicate item is typed automatically; otherwise pass an
+   * explicit type argument (`find<User>('User', …)`).
+   */
+  find<K extends keyof TTypes & string>(
+    typeName: K,
+    predicate: (item: TTypes[K]) => boolean,
+  ): TTypes[K] | undefined;
   find<T = unknown>(typeName: string, predicate: (item: T) => boolean): T | undefined;
   toResolvers(): Record<string, () => unknown>;
 }
 
 // MockResult exposes the pool data directly (mocks.User) plus helper methods.
 // TypeScript index signatures conflict with named methods, so we use an intersection
-// and cast at the creation site. mocks.User is unknown[] at compile time;
-// consumers cast with mocks.User as MyUser[] or use find<MyUser>() for typed access.
-export type MockResult = Record<string, unknown[]> & MockHelpers;
+// and cast at the creation site.
+//
+// The optional `TTypes` parameter lets callers declare the shape per type name so the
+// pools come back typed instead of `unknown[]`:
+//
+//   const mocks = buildMocks<{ User: UserFragment }>(schema, opts);
+//   mocks.User // UserFragment[] — no cast needed
+//
+// Any type name not listed in `TTypes` still falls back to `unknown[]` (use the
+// `unknown[]` value directly or `find<T>()` for typed access).
+export type MockResult<TTypes extends Record<string, unknown> = Record<string, unknown>> = {
+  [K in keyof TTypes]: TTypes[K][];
+} & Record<string, unknown[]> &
+  MockHelpers<TTypes>;

@@ -65,14 +65,28 @@ const mocks = buildMocks(schema, {
 
 ```ts
 const mocks = buildMocks(schema, {
+  seed: 42,
   overrides: {
     User: {
-      name:  () => 'Alice',
-      email: () => 'alice@example.com',
+      name:   () => 'Alice',
+      avatar: (faker) => faker.image.avatar(), // receives the same seeded faker
     },
   },
 });
 ```
+
+Override functions are passed the generator's faker instance, so they stay deterministic under `seed` without importing a separate faker.
+
+### `__typename` and stable ids
+
+Every object gets a `__typename` by default (the Apollo cache needs it). Turn it off with `addTypename: false`. Enable `stableIds` to give each object with an `id` field a readable, collision-free `TypeName-<index>` id instead of a random scalar:
+
+```ts
+const mocks = buildMocks(schema, { stableIds: true });
+mocks.User[0]; // { __typename: 'User', id: 'User-0', ... }
+```
+
+An explicit `overrides` entry for `id` still wins over `stableIds`.
 
 ### Interfaces / unions
 
@@ -88,14 +102,103 @@ const mocks = buildMocks(schema, {
 ### Helpers
 
 ```ts
-// Find a specific item
-const user = mocks.find<User>('User', (u) => u.id === targetId);
+// Find a specific item. With a typed map (see Typed pools) the item is inferred:
+const user = mocks.find('User', (u) => u.id === targetId);
+// Without a typed map, pass the type explicitly:
+const user2 = mocks.find<User>('User', (u) => u.id === targetId);
 
 // Apollo Server / GraphQL Yoga mock resolvers
 const resolvers = mocks.toResolvers();
 // { User: () => <random User from pool>, Todo: () => <random Todo>, ... }
 addMocksToSchema({ schema, mocks: resolvers });
 ```
+
+## Typed pools
+
+Pools are `unknown[]` by default — the type names and shapes only exist at runtime (in the schema), so they can't be inferred from the `schema` argument. Pass an optional `TTypes` map to declare them and the matching pools come back typed, no cast needed:
+
+```ts
+const mocks = buildMocks<{ User: User; Todo: Todo }>(schema);
+
+mocks.User // User[]
+mocks.Todo // Todo[]
+mocks.Other // still unknown[] — any type not in the map falls back
+```
+
+### Auto-typing with GraphQL Code Generator
+
+Rather than hand-maintaining the map, generate it from the schema so every type is typed automatically. Add a tiny custom plugin that emits a `name → type` map alongside the standard `typescript` plugin:
+
+```js
+// codegen/type-map-plugin.cjs
+const { isObjectType } = require('graphql');
+
+module.exports.plugin = (schema) => {
+  // Exclude root operation types — you don't mock Query/Mutation/Subscription as pools.
+  const roots = new Set(
+    [schema.getQueryType(), schema.getMutationType(), schema.getSubscriptionType()]
+      .filter(Boolean)
+      .map((t) => t.name),
+  );
+
+  const names = Object.values(schema.getTypeMap())
+    .filter((t) => isObjectType(t) && !t.name.startsWith('__') && !roots.has(t.name))
+    .map((t) => t.name)
+    .sort();
+
+  return {
+    content: `export type SchemaTypeMap = {\n${names
+      .map((n) => `  ${n}: ${n};`)
+      .join('\n')}\n};\n`,
+  };
+};
+```
+
+Run it right after `typescript` so the referenced types are defined in the same file:
+
+```ts
+// codegen.ts
+import type { CodegenConfig } from '@graphql-codegen/cli';
+
+const config: CodegenConfig = {
+  schema: './schema.graphql',
+  generates: {
+    './src/generated/graphql.ts': {
+      plugins: ['typescript', './codegen/type-map-plugin.cjs'],
+    },
+  },
+};
+
+export default config;
+```
+
+This produces:
+
+```ts
+export type SchemaTypeMap = {
+  Todo: Todo;
+  User: User;
+  // ...every object type
+};
+```
+
+Use it as the default type parameter on your own wrapper so callers get typed pools with zero annotation:
+
+```ts
+import { buildMocks, type BuildMocksOptions, type MockResult } from '@vantreeseba/graphql-mocks';
+import type { SchemaTypeMap } from './generated/graphql';
+
+export function getMocks<
+  TTypes extends Record<string, unknown> = SchemaTypeMap,
+>(options?: BuildMocksOptions): MockResult<TTypes> {
+  return buildMocks<TTypes>(schemaSDL, options);
+}
+
+getMocks().User // User[] — no generic, no cast
+getMocks<{ User: UserFragment }>().User // override per-call when you want a fragment shape
+```
+
+The generated `typescript` types add `__typename?: 'User'` by default and wrap nullable fields as `Maybe<T>`, which lines up with the mock output (with `nullChance: 0`, nothing is null). For typed one-off lookups without the map, `find<User>('User', …)` also works.
 
 ## Options
 
@@ -106,7 +209,7 @@ addMocksToSchema({ schema, mocks: resolvers });
 | `seed` | `number` | — | Seed faker for deterministic output |
 | `nullChance` | `number` | `0` | Probability (0–1) nullable fields are `null` |
 | `scalars` | `Record<string, (faker) => unknown>` | — | Custom scalar mockers (merged over defaults) |
-| `overrides` | `Record<type, Record<field, () => unknown>>` | — | Per-field replacement functions |
+| `overrides` | `Record<type, Record<field, (faker) => unknown>>` | — | Per-field replacement functions (receive the seeded faker) |
 | `resolveType` | `(abstractType: string) => string` | — | Concrete type for interface/union fields |
-
-See [specifications.md](./specifications.md) for the full API contract and built-in scalar mocker list.
+| `addTypename` | `boolean` | `true` | Add `__typename` to every object (Apollo cache needs it) |
+| `stableIds` | `boolean` | `false` | Give `id` fields stable `TypeName-<index>` values |
