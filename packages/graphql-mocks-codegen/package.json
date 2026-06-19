@@ -1,0 +1,57 @@
+{
+  "name": "@vantreeseba/graphql-mocks-codegen",
+  "version": "2.0.0",
+  "description": "GraphQL Code Generator plugin that emits a SchemaTypeMap for typing @vantreeseba/graphql-mocks pools.",
+  "type": "module",
+  "author": "Benjamin Van Treese <vantreeseba@gmail.com>",
+  "license": "MIT",
+  "homepage": "https://github.com/vantreeseba/graphql-mocks#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vantreeseba/graphql-mocks.git",
+    "directory": "packages/graphql-mocks-codegen"
+  },
+  "bugs": {
+    "url": "https://github.com/vantreeseba/graphql-mocks/issues"
+  },
+  "keywords": [
+    "graphql",
+    "graphql-codegen",
+    "graphql-code-generator",
+    "codegen",
+    "plugin",
+    "mocks",
+    "typescript"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "typecheck:tests": "tsc -p tsconfig.tests.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@graphql-codegen/visitor-plugin-common": "^5.8.0"
+  },
+  "peerDependencies": {
+    "@graphql-codegen/plugin-helpers": ">=5",
+    "graphql": ">=16"
+  },
+  "devDependencies": {
+    "@graphql-codegen/plugin-helpers": "^5.1.1",
+    "graphql": "^16.14.0"
+  }
+}
