@@ -1,7 +1,7 @@
 {
-  "name": "@vantreeseba/graphql-mocks",
-  "version": "2.0.1",
-  "description": "Generate realistic, graph-connected mock data from a GraphQL schema using faker",
+  "name": "@vantreeseba/graphql-mocks-monorepo",
+  "version": "0.0.0",
+  "private": true,
   "type": "module",
   "author": "Benjamin Van Treese <vantreeseba@gmail.com>",
   "license": "MIT",
@@ -13,60 +13,30 @@
   "bugs": {
     "url": "https://github.com/vantreeseba/graphql-mocks/issues"
   },
-  "keywords": [
-    "graphql",
-    "mocks",
-    "mock-data",
-    "faker",
-    "testing",
-    "fixtures",
-    "schema"
+  "workspaces": [
+    "packages/*"
   ],
-  "exports": {
-    ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
-    }
-  },
-  "files": [
-    "dist"
-  ],
-  "publishConfig": {
-    "access": "public"
-  },
   "scripts": {
-    "build": "tsc",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "coverage": "vitest run --coverage",
+    "build": "npm run build --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "typecheck:tests": "npm run typecheck:tests --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "coverage": "npm run coverage --workspaces --if-present",
     "format": "biome format --write .",
     "lint": "biome lint .",
     "check": "biome check ."
   },
-  "peerDependencies": {
-    "@faker-js/faker": ">=9",
-    "graphql": ">=16",
-    "graphql-scalars": ">=1.23"
-  },
-  "peerDependenciesMeta": {
-    "graphql-scalars": {
-      "optional": true
-    }
-  },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
-    "@faker-js/faker": "^9.8.0",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/commit-analyzer": "^13.0.1",
+    "@semantic-release/exec": "^7.1.0",
     "@semantic-release/git": "^10.0.1",
     "@semantic-release/github": "^12.0.8",
     "@semantic-release/npm": "^13.1.5",
     "@semantic-release/release-notes-generator": "^14.1.1",
     "@types/node": "^24.0.0",
     "@vitest/coverage-v8": "^3.1.3",
-    "graphql": "^16.14.0",
-    "graphql-scalars": "^1.24.0",
     "semantic-release": "^25.0.3",
     "typescript": "^5.8.3",
     "vitest": "^3.1.3"

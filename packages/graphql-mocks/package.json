@@ -1,0 +1,61 @@
+{
+  "name": "@vantreeseba/graphql-mocks",
+  "version": "2.0.1",
+  "description": "Generate realistic, graph-connected mock data from a GraphQL schema using faker",
+  "type": "module",
+  "author": "Benjamin Van Treese <vantreeseba@gmail.com>",
+  "license": "MIT",
+  "homepage": "https://github.com/vantreeseba/graphql-mocks#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vantreeseba/graphql-mocks.git",
+    "directory": "packages/graphql-mocks"
+  },
+  "bugs": {
+    "url": "https://github.com/vantreeseba/graphql-mocks/issues"
+  },
+  "keywords": [
+    "graphql",
+    "mocks",
+    "mock-data",
+    "faker",
+    "testing",
+    "fixtures",
+    "schema"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "typecheck:tests": "tsc -p tsconfig.tests.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "coverage": "vitest run --coverage"
+  },
+  "peerDependencies": {
+    "@faker-js/faker": ">=9",
+    "graphql": ">=16",
+    "graphql-scalars": ">=1.23"
+  },
+  "peerDependenciesMeta": {
+    "graphql-scalars": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@faker-js/faker": "^9.8.0",
+    "graphql": "^16.14.0",
+    "graphql-scalars": "^1.24.0"
+  }
+}
