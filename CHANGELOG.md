@@ -1,3 +1,21 @@
+# [2.0.0](https://github.com/vantreeseba/graphql-mocks/compare/v1.1.0...v2.0.0) (2026-06-19)
+
+
+### chore
+
+* flag __typename default as a breaking change ([fa34f9a](https://github.com/vantreeseba/graphql-mocks/commit/fa34f9a48390240f6f82d87759bd136f45dbf4f5))
+
+
+### BREAKING CHANGES
+
+* addTypename now defaults to true, so every generated object
+includes a __typename field. This is required by the Apollo cache and is the
+common case, but it changes object shape — exact-shape assertions and
+snapshots will now see an extra __typename key. Pass addTypename: false to
+restore the previous behavior.
+
+Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>
+
 # [1.1.0](https://github.com/vantreeseba/graphql-mocks/compare/v1.0.5...v1.1.0) (2026-06-19)
 
 
