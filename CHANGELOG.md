@@ -1,3 +1,10 @@
+## [2.0.1](https://github.com/vantreeseba/graphql-mocks/compare/v2.0.0...v2.0.1) (2026-06-19)
+
+
+### Bug Fixes
+
+* add repository, homepage, bugs, author, license and keywords to package.json ([456eb10](https://github.com/vantreeseba/graphql-mocks/commit/456eb10c60f3e105bd4544baf2d68fe32d81eb28))
+
 # [2.0.0](https://github.com/vantreeseba/graphql-mocks/compare/v1.1.0...v2.0.0) (2026-06-19)
 
 
