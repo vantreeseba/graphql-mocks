@@ -1,3 +1,10 @@
+## [2.1.1](https://github.com/vantreeseba/graphql-mocks/compare/v2.1.0...v2.1.1) (2026-06-19)
+
+
+### Bug Fixes
+
+* ship CJS build so graphql-codegen can require the plugin ([dadd953](https://github.com/vantreeseba/graphql-mocks/commit/dadd9533faebe770db00376e720077b5290861ed))
+
 # [2.1.0](https://github.com/vantreeseba/graphql-mocks/compare/v2.0.1...v2.1.0) (2026-06-19)
 
 
