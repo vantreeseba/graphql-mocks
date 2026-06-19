@@ -1,0 +1,30 @@
+{
+  "$schema": "https://context7.com/schema/context7.json",
+  "projectTitle": "@vantreeseba/graphql-mocks",
+  "description": "Generate realistic, graph-connected mock data from a GraphQL schema using faker, plus a GraphQL Code Generator plugin that emits a SchemaTypeMap for typed mock pools.",
+  "folders": [
+    "packages/graphql-mocks",
+    "packages/graphql-mocks-codegen"
+  ],
+  "excludeFolders": [
+    "node_modules",
+    "dist",
+    "coverage",
+    ".github"
+  ],
+  "excludeFiles": [
+    "package-lock.json",
+    "CHANGELOG.md"
+  ],
+  "rules": [
+    "buildMocks(schema, options?) is the runtime entry point; it accepts a GraphQLSchema or an SDL string and returns a MockResult keyed by object-type name.",
+    "Relationships are wired as actual object references: todo.user is the same object as mocks.User[i], not a copy. Circular references resolve to already-generated objects.",
+    "Pools are unknown[] by default. Pass a TTypes map (buildMocks<{ User: User }>(schema)) or a generated SchemaTypeMap to get typed pools without a cast.",
+    "Use the @vantreeseba/graphql-mocks-codegen plugin to auto-generate the SchemaTypeMap from a schema; run it alongside the standard typescript plugin in codegen.ts.",
+    "Determinism comes from the seed option; override and scalar functions receive the generator's seeded faker instance, so do not import a separate faker for them.",
+    "Default counts are 5 per type; scalar list fields generate 1-3 items and relationship list fields 1-5. Unknown scalars fall back to faker.lorem.word() with a console.warn.",
+    "Every object gets __typename by default (Apollo cache needs it); disable with addTypename: false. stableIds gives id fields readable TypeName-<index> values, but an explicit overrides entry for id still wins.",
+    "ESM-only, TypeScript 5 strict. Peer deps: graphql >=16 and @faker-js/faker >=9 for the runtime; the codegen plugin also needs @graphql-codegen/plugin-helpers and @graphql-codegen/visitor-plugin-common."
+  ],
+  "previousVersions": []
+}

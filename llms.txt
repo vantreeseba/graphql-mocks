@@ -1,0 +1,41 @@
+# @vantreeseba/graphql-mocks
+
+> An npm-workspaces monorepo for the `@vantreeseba/graphql-mocks` toolkit: generate realistic, graph-connected mock data from a GraphQL schema using faker, with a companion GraphQL Code Generator plugin for fully typed mock pools.
+
+The runtime introspects every object type in a `GraphQLSchema` (or SDL string) and produces a set of interconnected mock objects where relationships are honored as real object references — `User.todos` references actual mocked `Todo` objects, and `Todo.user` points back to a `User`. Useful for tests, demos, and Storybook mocking. The codegen plugin emits a `SchemaTypeMap` (`{ TypeName: GeneratedType }`) you pass as `TTypes` to `buildMocks` so pools come back typed without a cast.
+
+Key facts:
+- TypeScript 5, strict mode, ESM only.
+- Two published packages, versioned and released together via semantic-release: `@vantreeseba/graphql-mocks` (runtime) and `@vantreeseba/graphql-mocks-codegen` (codegen plugin).
+- Runtime peer deps: `graphql >=16`, `@faker-js/faker >=9`. Codegen peer deps: `graphql >=16`, `@graphql-codegen/plugin-helpers >=5`, `@graphql-codegen/visitor-plugin-common >=5`.
+
+## Documentation
+
+- [Monorepo overview](https://github.com/vantreeseba/graphql-mocks/blob/main/README.md): Packages table and development workflow.
+- [Runtime: @vantreeseba/graphql-mocks](https://github.com/vantreeseba/graphql-mocks/blob/main/packages/graphql-mocks/README.md): `buildMocks` API, options (count, seed, nullChance, scalars, overrides, resolveType, addTypename, stableIds), typed pools, and helpers.
+- [Codegen plugin: @vantreeseba/graphql-mocks-codegen](https://github.com/vantreeseba/graphql-mocks/blob/main/packages/graphql-mocks-codegen/README.md): generating a `SchemaTypeMap`, plugin configuration (`typeMapName`, `typesImportPath`, `typesNamespace`), and generated output.
+- [AGENTS.md](https://github.com/vantreeseba/graphql-mocks/blob/main/AGENTS.md): Project structure, stack, conventions, and contributor guidance.
+
+## API
+
+- `buildMocks(schema, options?)`: Core entry point. Accepts a `GraphQLSchema` or SDL string; returns a `MockResult` keyed by object-type name. Generic `buildMocks<TTypes>(schema)` returns typed pools.
+- `MockResult.find(typeName, predicate)`: Find a single mocked item; the item is typed when a `TTypes`/`SchemaTypeMap` is supplied, or `find<T>('Type', …)` for a typed one-off.
+- `MockResult.toResolvers()`: Produce Apollo Server / GraphQL Yoga mock resolvers (`{ Type: () => <random item from pool> }`) for `addMocksToSchema`.
+- `BuildMocksOptions`: `count`, `faker`, `seed`, `nullChance`, `scalars`, `overrides`, `resolveType`, `addTypename`, `stableIds`.
+- `@vantreeseba/graphql-mocks-codegen` plugin: emits `export type SchemaTypeMap = { … }` for every object type (root operation and introspection types excluded, entries sorted).
+
+## Examples
+
+- Basic: `const mocks = buildMocks(schema); mocks.User; mocks.Todo;` — 5 of each, with `todo.user` pointing into `mocks.User`.
+- Deterministic + per-type counts: `buildMocks(schema, { seed: 42, count: { User: 10, Todo: 50, _default: 5 }, nullChance: 0.1 })`.
+- Custom scalar mockers: `buildMocks(schema, { scalars: { DateTime: (f) => f.date.recent().toISOString(), CityName: (f) => f.location.city() } })`.
+- Field overrides (receive the seeded faker): `buildMocks(schema, { overrides: { User: { name: () => 'Alice', avatar: (f) => f.image.avatar() } } })`.
+- Stable ids: `buildMocks(schema, { stableIds: true }).User[0]` → `{ __typename: 'User', id: 'User-0', … }`.
+- Interfaces/unions: `buildMocks(schema, { resolveType: (name) => name === 'SearchResult' ? 'Post' : 'User' })`.
+- Typed pools: `buildMocks<{ User: User; Todo: Todo }>(schema)` or `buildMocks<SchemaTypeMap>(schema)`.
+
+## Optional
+
+- [CHANGELOG.md](https://github.com/vantreeseba/graphql-mocks/blob/main/CHANGELOG.md): Release history.
+- [LICENSE](https://github.com/vantreeseba/graphql-mocks/blob/main/LICENSE): MIT.
+- [Issues](https://github.com/vantreeseba/graphql-mocks/issues): Bug reports and feature requests.
