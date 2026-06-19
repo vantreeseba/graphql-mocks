@@ -1,3 +1,15 @@
+# Unreleased
+
+### Features
+
+* typed pools via `buildMocks<TTypes>` / `MockResult<TTypes>` and type-aware `find()` ([7c799e5](https://github.com/vantreeseba/graphql-mocks/commit/7c799e5))
+* `stableIds` option for stable `TypeName-<index>` ids ([7c799e5](https://github.com/vantreeseba/graphql-mocks/commit/7c799e5))
+* override functions now receive the seeded faker instance ([7c799e5](https://github.com/vantreeseba/graphql-mocks/commit/7c799e5))
+
+### BREAKING CHANGES
+
+* `addTypename` now defaults to `true`, so every generated object includes a `__typename` field. This is required by the Apollo cache and is the common case, but it changes object shape: exact-shape assertions and snapshots will now see an extra `__typename` key. Pass `addTypename: false` to restore the previous behavior.
+
 ## [1.0.5](https://github.com/vantreeseba/graphql-mocks/compare/v1.0.4...v1.0.5) (2026-05-14)
 
 
