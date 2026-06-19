@@ -1,3 +1,10 @@
+## [1.0.5](https://github.com/vantreeseba/graphql-mocks/compare/v1.0.4...v1.0.5) (2026-05-14)
+
+
+### Bug Fixes
+
+* **ci:** build dist before publishing; add typecheck script ([8b2ed98](https://github.com/vantreeseba/graphql-mocks/commit/8b2ed988ec404b1cf0fe180d81840428965945f6))
+
 ## [1.0.4](https://github.com/vantreeseba/graphql-mocks/compare/v1.0.3...v1.0.4) (2026-05-14)
 
 
