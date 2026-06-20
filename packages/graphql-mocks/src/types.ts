@@ -4,16 +4,47 @@ export type ScalarMocker = (faker: Faker) => unknown;
 /**
  * Per-field override. Receives the same (seeded) faker instance the generator uses, so
  * overrides stay deterministic under `seed` without importing a separate faker.
+ *
+ * @typeParam T - The field's value type. When `BuildMocksOptions` is parameterized with a
+ * `TTypes` map (e.g. the codegen `SchemaTypeMap`), the return type is bound to the field's
+ * own type, so `overrides: { User: { id: () => 5 } }` errors when `id` is a string.
  */
-export type FieldOverrideFn = (faker: Faker) => unknown;
-export type CountConfig = number | { _default?: number; [typeName: string]: number | undefined };
+export type FieldOverrideFn<T = unknown> = (faker: Faker) => T;
 
-export interface BuildMocksOptions {
+/**
+ * Per-type instance counts. When `TTypes` is supplied, the keys autocomplete to the schema's
+ * type names and typos are caught; otherwise any type name is accepted. `_default` applies to
+ * any type without an explicit entry.
+ */
+export type CountConfig<TTypes extends Record<string, unknown> = Record<string, unknown>> =
+  | number
+  | ({ _default?: number } & { [K in keyof TTypes]?: number });
+
+// Field-level overrides for a single type. When the type's shape is `unknown` (the default,
+// untyped case) this degrades to a loose `Record<string, FieldOverrideFn>`, preserving the
+// pre-`TTypes` behavior; when concrete, each field name is checked and its override return
+// type is bound to the field's type.
+type FieldOverrides<T> = unknown extends T
+  ? Record<string, FieldOverrideFn>
+  : { [F in keyof T]?: FieldOverrideFn<T[F]> };
+
+/**
+ * Per-type, per-field override map. With a `TTypes` map, both the type name and field name
+ * autocomplete and each override's return type is bound to the field's type; without it, any
+ * type/field name is accepted with an `unknown` return.
+ */
+export type OverridesConfig<TTypes extends Record<string, unknown> = Record<string, unknown>> = {
+  [K in keyof TTypes]?: FieldOverrides<TTypes[K]>;
+};
+
+export interface BuildMocksOptions<
+  TTypes extends Record<string, unknown> = Record<string, unknown>,
+> {
   /**
    * Number of instances to generate per type. Either a flat number or a per-type map.
    * @default 5
    */
-  count?: CountConfig;
+  count?: CountConfig<TTypes>;
   /** Provide a custom Faker instance (e.g. with a specific locale). */
   faker?: Faker;
   /** Seed the faker instance for deterministic output. Applied to `options.faker` if provided. */
@@ -32,12 +63,12 @@ export interface BuildMocksOptions {
    * Per-type, per-field override functions. The function is called once per object instance.
    * Return value replaces the generated value for that field entirely.
    */
-  overrides?: Record<string, Record<string, FieldOverrideFn>>;
+  overrides?: OverridesConfig<TTypes>;
   /**
    * Required when the schema has interface or union fields.
    * Return the concrete type name to use when mocking a field of that abstract type.
    */
-  resolveType?: (abstractTypeName: string) => string;
+  resolveType?: (abstractTypeName: string) => keyof TTypes & string;
   /**
    * Add a `__typename` field (set to the type name) to every generated object.
    * Required by the Apollo cache, so it's on by default.
@@ -64,7 +95,13 @@ export interface MockHelpers<TTypes extends Record<string, unknown> = Record<str
     predicate: (item: TTypes[K]) => boolean,
   ): TTypes[K] | undefined;
   find<T = unknown>(typeName: string, predicate: (item: T) => boolean): T | undefined;
-  toResolvers(): Record<string, () => unknown>;
+  /**
+   * Build a resolver map keyed by type name, each returning a random pooled instance.
+   * Type names declared in `TTypes` come back typed (`resolvers.User()` is `TTypes['User']`)
+   * with key autocomplete; any other object type in the schema is still resolvable as
+   * `() => unknown`.
+   */
+  toResolvers(): { [K in keyof TTypes]: () => TTypes[K] } & Record<string, () => unknown>;
 }
 
 // MockResult exposes the pool data directly (mocks.User) plus helper methods.

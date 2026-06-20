@@ -20,7 +20,9 @@ import type { BuildMocksOptions, MockResult } from './types.js';
  */
 export function buildMocks<TTypes extends Record<string, unknown> = Record<string, unknown>>(
   schema: GraphQLSchema | string,
-  options: BuildMocksOptions = {},
+  // NoInfer keeps TTypes pinned to the explicit type argument; without it TS would infer
+  // TTypes from the options literal (e.g. count keys) and wrongly constrain the other options.
+  options: BuildMocksOptions<NoInfer<TTypes>> = {},
 ): MockResult<TTypes> {
   let resolvedSchema: GraphQLSchema;
 
@@ -34,5 +36,7 @@ export function buildMocks<TTypes extends Record<string, unknown> = Record<strin
     );
   }
 
-  return buildGraph(resolvedSchema, options) as MockResult<TTypes>;
+  // buildGraph and the internal mockers operate on the default (untyped) options shape;
+  // the parameterized options are a structural subtype, so widen for the internal call.
+  return buildGraph(resolvedSchema, options as BuildMocksOptions) as MockResult<TTypes>;
 }
