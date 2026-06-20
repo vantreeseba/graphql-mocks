@@ -125,23 +125,23 @@ const data = mocks.dataForOperation(UserByIdQuery);
 
 These helpers turn a `TypedDocumentNode` into an entry for Apollo's `MockedProvider` `mocks` array — no hand-written `request`/`result` boilerplate.
 
-The `*FromPool` variants need **no data argument at all**: they resolve the result straight from a `MockResult` graph (via `dataForOperation`), so the query's own selection set decides which mocks come back. Point them at the same `mocks` you built from the schema:
+Call them off the `mocks` graph (`mocks.mockOperation`) and you need **no data argument at all**: the result is resolved straight from the graph (via `dataForOperation`), so the query's own selection set decides which mocks come back. The pool is already captured, so you just pass the document:
 
 ```tsx
 import { MockedProvider } from '@apollo/client/testing';
-import { buildMocks, mockOperationFromPool } from '@vantreeseba/graphql-mocks';
+import { buildMocks } from '@vantreeseba/graphql-mocks';
 import { AwardByIdQuery } from './graphql';
 
 const mocks = buildMocks<SchemaTypeMap>(schema);
 
 render(
-  <MockedProvider mocks={[mockOperationFromPool(mocks, AwardByIdQuery)]}>
+  <MockedProvider mocks={[mocks.mockOperation(AwardByIdQuery)]}>
     <AwardCard />
   </MockedProvider>,
 );
 ```
 
-Prefer to supply the data yourself? `mockOperation` takes the result data directly; the result/variables types are inferred from the document, so `data` is type-checked against the operation's result type:
+Prefer to supply the data yourself? The standalone `mockOperation` takes the result data directly; the result/variables types are inferred from the document, so `data` is type-checked against the operation's result type:
 
 ```ts
 import { mockOperation } from '@vantreeseba/graphql-mocks';
@@ -152,19 +152,17 @@ mockOperation(AwardByIdQuery, { award: mockAwards[0], __typename: 'Query' });
 By default a mock matches **any** variables and may be used any number of times (`maxUsageCount: Infinity`). Override per call when you need exact matching, a delay, or an error (the same `options` apply to every helper here):
 
 ```ts
-mockOperationFromPool(mocks, AwardByIdQuery, {
+mocks.mockOperation(AwardByIdQuery, {
   variables: { id: 'Award-0' }, // exact match (or a predicate (vars) => boolean)
   delay: 50,
   maxUsageCount: 1,
 });
 ```
 
-For the common "success / loading / error" trio, `mockOperationVariants` (data passed in) and `mockOperationVariantsFromPool` (data from the graph) return all three at once:
+For the common "success / loading / error" trio, `mockOperationVariants` returns all three at once — `mocks.mockOperationVariants` resolves the success data from the graph, while the standalone `mockOperationVariants(operation, data)` takes it directly:
 
 ```ts
-import { mockOperationVariantsFromPool } from '@vantreeseba/graphql-mocks';
-
-const m = mockOperationVariantsFromPool(mocks, AwardByIdQuery);
+const m = mocks.mockOperationVariants(AwardByIdQuery);
 m.withResults;      // resolves with data drawn from the pool
 m.withLongLoadTime; // stays pending — drive loading states
 m.withError;        // rejects with an error naming the operation

@@ -23,7 +23,7 @@ Key facts:
 - `MockResult.toResolvers()`: Produce Apollo Server / GraphQL Yoga mock resolvers (`{ Type: () => <random item from pool> }`) for `addMocksToSchema`.
 - `MockResult.dataForOperation(document, variables?)`: Execute a query/mutation against the graph and return data shaped to the selection set (lists, fragments, and interface/union fields supported). Return type inferred from a `TypedDocumentNode`.
 - `mockOperation(query, data, options?)` / `mockOperationVariants(...)`: Build Apollo `MockedProvider` `MockedResponse` entries from supplied result data (`options`: `variables`, `delay`, `error`, `maxUsageCount`).
-- `mockOperationFromPool(mocks, query, options?)` / `mockOperationVariantsFromPool(...)`: Same, but resolve the result data from a `MockResult` graph (via `dataForOperation`) so the query's selection set selects the mocks — no data argument needed.
+- `MockResult.mockOperation(query, options?)` / `MockResult.mockOperationVariants(...)`: Same, but resolve the result data from the `MockResult` graph (via `dataForOperation`) so the query's selection set selects the mocks — no data argument needed.
 - `BuildMocksOptions`: `count`, `faker`, `seed`, `nullChance`, `scalars`, `overrides`, `resolveType`, `addTypename`, `stableIds`.
 - `@vantreeseba/graphql-mocks-codegen` plugin: emits `export type SchemaTypeMap = { … }` for every object type (root operation and introspection types excluded, entries sorted).
 
@@ -37,7 +37,7 @@ Key facts:
 - Interfaces/unions: `buildMocks(schema, { resolveType: (name) => name === 'SearchResult' ? 'Post' : 'User' })`.
 - Typed pools: `buildMocks<{ User: User; Todo: Todo }>(schema)` or `buildMocks<SchemaTypeMap>(schema)`.
 - Operation data: `const data = mocks.dataForOperation(UserByIdQuery)` → `{ user: { …selected fields, nested via wired refs… } }`.
-- Apollo MockedProvider (data from the graph): `<MockedProvider mocks={[mockOperationFromPool(mocks, AwardByIdQuery)]} />`.
+- Apollo MockedProvider (data from the graph): `<MockedProvider mocks={[mocks.mockOperation(AwardByIdQuery)]} />`.
 
 ## Optional
 

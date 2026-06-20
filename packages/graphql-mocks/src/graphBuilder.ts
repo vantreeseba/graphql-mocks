@@ -8,6 +8,12 @@ import {
   isScalarType,
   isUnionType,
 } from 'graphql';
+import {
+  type MockOperationOptions,
+  mockOperation as buildMockOperation,
+  mockOperationVariants as buildMockOperationVariants,
+  variablesForData,
+} from './apolloMocks.js';
 import { resolveOperationData } from './executeOperation.js';
 import { OPERATION_TYPE_NAMES, resolveCount, resolveFaker } from './helpers.js';
 import { mockTypeScalars, unwrapType } from './typeMocker.js';
@@ -33,23 +39,44 @@ function createMockResult(
   schema: GraphQLSchema,
   options: BuildMocksOptions,
 ): MockResult {
+  const dataForOperation = (
+    document: Parameters<typeof resolveOperationData>[4],
+    variables?: Record<string, unknown>,
+  ) =>
+    resolveOperationData(
+      schema,
+      pool as Record<string, Record<string, unknown>[]>,
+      faker,
+      options,
+      document,
+      variables,
+    );
+
   const helpers = {
     find<T = unknown>(typeName: string, predicate: (item: T) => boolean): T | undefined {
       const items = pool[typeName] as T[] | undefined;
       return items?.find(predicate);
     },
-    dataForOperation(
-      document: Parameters<typeof resolveOperationData>[4],
-      variables?: Record<string, unknown>,
+    dataForOperation,
+    mockOperation(
+      document: Parameters<typeof buildMockOperation>[0],
+      opOptions: MockOperationOptions = {},
     ) {
-      return resolveOperationData(
-        schema,
-        pool as Record<string, Record<string, unknown>[]>,
-        faker,
-        options,
+      const data = dataForOperation(
         document,
-        variables,
+        variablesForData(opOptions.variables) as Record<string, unknown> | undefined,
       );
+      return buildMockOperation(document, data, opOptions);
+    },
+    mockOperationVariants(
+      document: Parameters<typeof buildMockOperationVariants>[0],
+      opOptions: MockOperationOptions = {},
+    ) {
+      const data = dataForOperation(
+        document,
+        variablesForData(opOptions.variables) as Record<string, unknown> | undefined,
+      );
+      return buildMockOperationVariants(document, data, opOptions);
     },
     toResolvers(): Record<string, () => unknown> {
       const resolvers: Record<string, () => unknown> = {};
