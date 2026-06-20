@@ -190,7 +190,7 @@ import type { SchemaTypeMap } from './generated/graphql';
 
 export function getMocks<
   TTypes extends Record<string, unknown> = SchemaTypeMap,
->(options?: BuildMocksOptions): MockResult<TTypes> {
+>(options?: BuildMocksOptions<TTypes>): MockResult<TTypes> {
   return buildMocks<TTypes>(schemaSDL, options);
 }
 
@@ -209,7 +209,7 @@ The generated `typescript` types add `__typename?: 'User'` by default and wrap n
 | `seed` | `number` | — | Seed faker for deterministic output |
 | `nullChance` | `number` | `0` | Probability (0–1) nullable fields are `null` |
 | `scalars` | `Record<string, (faker) => unknown>` | — | Custom scalar mockers (merged over defaults) |
-| `overrides` | `Record<type, Record<field, (faker) => unknown>>` | — | Per-field replacement functions (receive the seeded faker) |
-| `resolveType` | `(abstractType: string) => string` | — | Concrete type for interface/union fields |
+| `overrides` | `Record<type, Record<field, (faker) => unknown>>` | — | Per-field replacement functions (receive the seeded faker). With a `TTypes` map, type/field keys autocomplete and each return type is bound to the field's type |
+| `resolveType` | `(abstractType: string) => string` | — | Concrete type for interface/union fields. With a `TTypes` map, the return is constrained to the map's type names |
 | `addTypename` | `boolean` | `true` | Add `__typename` to every object (Apollo cache needs it) |
 | `stableIds` | `boolean` | `false` | Give `id` fields stable `TypeName-<index>` values |
