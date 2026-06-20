@@ -45,16 +45,21 @@
   },
   "peerDependencies": {
     "@faker-js/faker": ">=9",
+    "@graphql-typed-document-node/core": ">=3",
     "graphql": ">=16",
     "graphql-scalars": ">=1.23"
   },
   "peerDependenciesMeta": {
+    "@graphql-typed-document-node/core": {
+      "optional": true
+    },
     "graphql-scalars": {
       "optional": true
     }
   },
   "devDependencies": {
     "@faker-js/faker": "^9.8.0",
+    "@graphql-typed-document-node/core": "^3.2.0",
     "graphql": "^16.14.0",
     "graphql-scalars": "^1.24.0"
   }

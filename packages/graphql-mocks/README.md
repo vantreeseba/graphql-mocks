@@ -113,6 +113,49 @@ const resolvers = mocks.toResolvers();
 addMocksToSchema({ schema, mocks: resolvers });
 ```
 
+## Apollo `MockedProvider`
+
+`mockOperation` turns a `TypedDocumentNode` (query **or** mutation) plus its result data into a single entry for Apollo's `MockedProvider` `mocks` array — no hand-written `request`/`result` boilerplate. The result/variables types are inferred from the document, so `data` is type-checked against the operation's result type.
+
+```ts
+import { MockedProvider } from '@apollo/client/testing';
+import { mockOperation } from '@vantreeseba/graphql-mocks';
+import { AwardByIdQuery } from './graphql';
+
+const mocks = [
+  mockOperation(AwardByIdQuery, { award: mockAwards[0], __typename: 'Query' }),
+];
+
+render(
+  <MockedProvider mocks={mocks}>
+    <AwardCard id={mockAwards[0].id} />
+  </MockedProvider>,
+);
+```
+
+By default the mock matches **any** variables and may be used any number of times (`maxUsageCount: Infinity`). Override per call when you need exact matching, a delay, or an error:
+
+```ts
+mockOperation(AwardByIdQuery, data, {
+  variables: { id: 'Award-0' }, // exact match (or a predicate (vars) => boolean)
+  delay: 50,
+  maxUsageCount: 1,
+});
+```
+
+For the common "success / loading / error" trio, `mockOperationVariants` returns all three at once:
+
+```ts
+import { mockOperationVariants } from '@vantreeseba/graphql-mocks';
+
+const m = mockOperationVariants(AwardByIdQuery, data);
+m.withResults;      // resolves with data
+m.withLongLoadTime; // stays pending — drive loading states
+m.withError;        // rejects with an error naming the operation
+```
+
+`@graphql-typed-document-node/core` (bundled with Apollo Client and graphql-codegen) provides the `TypedDocumentNode` type; it's an optional peer, only needed if you use these helpers.
+
 ## Typed pools
 
 Pools are `unknown[]` by default — the type names and shapes only exist at runtime (in the schema), so they can't be inferred from the `schema` argument. Pass an optional `TTypes` map to declare them and the matching pools come back typed, no cast needed:
