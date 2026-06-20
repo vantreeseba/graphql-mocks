@@ -1,3 +1,17 @@
+# [3.0.0](https://github.com/vantreeseba/graphql-mocks/compare/v2.3.0...v3.0.0) (2026-06-20)
+
+
+* feat(graphql-mocks)!: resolve mockOperation data from the mock graph ([a09847e](https://github.com/vantreeseba/graphql-mocks/commit/a09847e56fb65a56c78eb0794009535697879f10))
+
+
+### BREAKING CHANGES
+
+* remove `mockOperationFromPool` and
+`mockOperationVariantsFromPool`; use `mocks.mockOperation(query)` and
+`mocks.mockOperationVariants(query)` instead.
+
+Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>
+
 # [2.3.0](https://github.com/vantreeseba/graphql-mocks/compare/v2.2.0...v2.3.0) (2026-06-20)
 
 
