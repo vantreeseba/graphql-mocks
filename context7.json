@@ -2,20 +2,9 @@
   "$schema": "https://context7.com/schema/context7.json",
   "projectTitle": "@vantreeseba/graphql-mocks",
   "description": "Generate realistic, graph-connected mock data from a GraphQL schema using faker, plus a GraphQL Code Generator plugin that emits a SchemaTypeMap for typed mock pools.",
-  "folders": [
-    "packages/graphql-mocks",
-    "packages/graphql-mocks-codegen"
-  ],
-  "excludeFolders": [
-    "node_modules",
-    "dist",
-    "coverage",
-    ".github"
-  ],
-  "excludeFiles": [
-    "package-lock.json",
-    "CHANGELOG.md"
-  ],
+  "folders": ["packages/graphql-mocks", "packages/graphql-mocks-codegen"],
+  "excludeFolders": ["node_modules", "dist", "coverage", ".github"],
+  "excludeFiles": ["package-lock.json", "CHANGELOG.md"],
   "rules": [
     "buildMocks(schema, options?) is the runtime entry point; it accepts a GraphQLSchema or an SDL string and returns a MockResult keyed by object-type name.",
     "Relationships are wired as actual object references: todo.user is the same object as mocks.User[i], not a copy. Circular references resolve to already-generated objects.",
