@@ -80,3 +80,44 @@ describe('dataForOperation', () => {
     expect(data.user?.id).toBeDefined();
   });
 });
+
+type UserData = { user: { id: string } | null };
+type UserVars = { id: string };
+const UserByIdQuery = parse(
+  'query UserById($id: ID!) { user(id: $id) { id } }',
+) as TypedDocumentNode<UserData, UserVars>;
+
+describe('mocks.mockOperation', () => {
+  it('builds a MockedProvider entry with data resolved from the pool — no data argument', () => {
+    const mock = mocks.mockOperation(UserByIdQuery);
+    expect(mock.request.query).toBe(UserByIdQuery);
+    expect(mock.result?.data?.user?.id).toBeDefined();
+    // The resolved id is a real pooled instance.
+    expect(mocks.User?.some((u) => (u as { id: string }).id === mock.result?.data?.user?.id)).toBe(
+      true,
+    );
+  });
+
+  it('defaults variables to a match-any predicate and maxUsageCount to Infinity', () => {
+    const mock = mocks.mockOperation(UserByIdQuery);
+    expect(typeof mock.request.variables).toBe('function');
+    expect(mock.maxUsageCount).toBe(Number.POSITIVE_INFINITY);
+  });
+
+  it('threads delay/error/maxUsageCount options through', () => {
+    const error = new Error('boom');
+    const mock = mocks.mockOperation(UserByIdQuery, { delay: 50, error, maxUsageCount: 2 });
+    expect(mock.delay).toBe(50);
+    expect(mock.error).toBe(error);
+    expect(mock.maxUsageCount).toBe(2);
+  });
+});
+
+describe('mocks.mockOperationVariants', () => {
+  it('returns success/long-load/error variants, success data drawn from the pool', () => {
+    const variants = mocks.mockOperationVariants(UserByIdQuery);
+    expect(variants.withResults.result?.data?.user?.id).toBeDefined();
+    expect(variants.withLongLoadTime.delay).toBe(1_000_000);
+    expect(variants.withError.error?.message).toContain('UserById');
+  });
+});

@@ -1,6 +1,7 @@
 import type { Faker } from '@faker-js/faker';
 import type { TypedDocumentNode } from '@graphql-typed-document-node/core';
 import type { DocumentNode } from 'graphql';
+import type { MockOperationOptions, MockOperationVariants, MockedResponse } from './apolloMocks.js';
 
 export type ScalarMocker = (faker: Faker) => unknown;
 /**
@@ -110,6 +111,31 @@ export interface MockHelpers<TTypes extends Record<string, unknown> = Record<str
     document: TypedDocumentNode<TData, TVars> | DocumentNode,
     variables?: TVars extends Record<string, unknown> ? Partial<TVars> : Record<string, unknown>,
   ): TData;
+  /**
+   * Build an Apollo `MockedProvider` entry for the operation with **no data argument** — the
+   * result is resolved straight from this graph via {@link MockHelpers.dataForOperation}, so the
+   * query's own selection set decides which mocks come back. The pool is captured, so you only
+   * pass the document (and optional `variables`/`delay`/`error`/`maxUsageCount` overrides).
+   *
+   * ```ts
+   * const mocks = buildMocks(schema);
+   * <MockedProvider mocks={[mocks.mockOperation(AwardByIdQuery)]}>…</MockedProvider>
+   * ```
+   *
+   * To supply the data yourself instead, use the standalone `mockOperation(operation, data)`.
+   */
+  mockOperation<TData = unknown, TVars = Record<string, unknown>>(
+    operation: TypedDocumentNode<TData, TVars>,
+    options?: MockOperationOptions<TVars>,
+  ): MockedResponse<TData, TVars>;
+  /**
+   * Like {@link MockHelpers.mockOperation}, but returns the success / long-load / error trio at
+   * once, with the success data resolved from this graph.
+   */
+  mockOperationVariants<TData = unknown, TVars = Record<string, unknown>>(
+    operation: TypedDocumentNode<TData, TVars>,
+    options?: MockOperationOptions<TVars>,
+  ): MockOperationVariants<TData, TVars>;
   /**
    * Build a resolver map keyed by type name, each returning a random pooled instance.
    * Type names declared in `TTypes` come back typed (`resolvers.User()` is `TTypes['User']`)
