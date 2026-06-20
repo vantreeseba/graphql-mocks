@@ -1,3 +1,16 @@
+# [2.3.0](https://github.com/vantreeseba/graphql-mocks/compare/v2.2.0...v2.3.0) (2026-06-20)
+
+
+### Bug Fixes
+
+* **graphql-mocks:** use optional chaining on mock pool in operation test ([8645dba](https://github.com/vantreeseba/graphql-mocks/commit/8645dba87c870c91a79486e05546509d613430fb))
+
+
+### Features
+
+* **graphql-mocks:** add Apollo MockedProvider mock builders ([6bcfc3e](https://github.com/vantreeseba/graphql-mocks/commit/6bcfc3ea9634974884a5d76ba69f0003e55b6976))
+* **graphql-mocks:** resolve operation data from the mock graph ([cb18ba7](https://github.com/vantreeseba/graphql-mocks/commit/cb18ba71097aabc12efb5c67dfc5a60ed319552d))
+
 # [2.2.0](https://github.com/vantreeseba/graphql-mocks/compare/v2.1.1...v2.2.0) (2026-06-20)
 
 
