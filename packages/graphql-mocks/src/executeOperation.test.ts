@@ -20,7 +20,7 @@ describe('dataForOperation', () => {
     expect(data.user?.__typename).toBe('User');
     expect(Object.keys(data.user ?? {}).sort()).toEqual(['__typename', 'email', 'id', 'name']);
     // The picked user is a real pooled instance.
-    expect(mocks.User.some((u) => (u as { id: string }).id === data.user?.id)).toBe(true);
+    expect(mocks.User?.some((u) => (u as { id: string }).id === data.user?.id)).toBe(true);
   });
 
   it('only includes selected fields, not the whole mock object', () => {
