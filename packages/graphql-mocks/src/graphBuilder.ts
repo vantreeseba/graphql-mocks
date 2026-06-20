@@ -8,6 +8,7 @@ import {
   isScalarType,
   isUnionType,
 } from 'graphql';
+import { resolveOperationData } from './executeOperation.js';
 import { OPERATION_TYPE_NAMES, resolveCount, resolveFaker } from './helpers.js';
 import { mockTypeScalars, unwrapType } from './typeMocker.js';
 import type { BuildMocksOptions, MockResult } from './types.js';
@@ -26,11 +27,29 @@ function pickSubset<T>(arr: T[], faker: Faker): T[] {
   });
 }
 
-function createMockResult(pool: Record<string, unknown[]>, faker: Faker): MockResult {
+function createMockResult(
+  pool: Record<string, unknown[]>,
+  faker: Faker,
+  schema: GraphQLSchema,
+  options: BuildMocksOptions,
+): MockResult {
   const helpers = {
     find<T = unknown>(typeName: string, predicate: (item: T) => boolean): T | undefined {
       const items = pool[typeName] as T[] | undefined;
       return items?.find(predicate);
+    },
+    dataForOperation(
+      document: Parameters<typeof resolveOperationData>[4],
+      variables?: Record<string, unknown>,
+    ) {
+      return resolveOperationData(
+        schema,
+        pool as Record<string, Record<string, unknown>[]>,
+        faker,
+        options,
+        document,
+        variables,
+      );
     },
     toResolvers(): Record<string, () => unknown> {
       const resolvers: Record<string, () => unknown> = {};
@@ -131,5 +150,5 @@ export function buildGraph(schema: GraphQLSchema, options: BuildMocksOptions): M
     }
   }
 
-  return createMockResult(pool as Record<string, unknown[]>, faker);
+  return createMockResult(pool as Record<string, unknown[]>, faker, schema, options);
 }

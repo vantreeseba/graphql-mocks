@@ -1,5 +1,16 @@
 import type { TypedDocumentNode } from '@graphql-typed-document-node/core';
 import { type DocumentNode, Kind } from 'graphql';
+import type { MockResult } from './types.js';
+
+/** The subset of a `MockResult` these helpers need: the operation resolver. */
+type OperationDataSource = Pick<MockResult, 'dataForOperation'>;
+
+/** Concrete variables for data resolution (a matcher function can't drive pool selection). */
+function variablesForData<TVars>(
+  variables: TVars | VariableMatcher<TVars> | undefined,
+): TVars | undefined {
+  return typeof variables === 'function' ? undefined : variables;
+}
 
 /**
  * Predicate form of `request.variables` — Apollo invokes it with the incoming
@@ -130,4 +141,36 @@ export function mockOperationVariants<TData, TVars>(
         ),
     }),
   };
+}
+
+/**
+ * Like {@link mockOperation}, but the result data is resolved automatically from a
+ * `MockResult` pool (via `mocks.dataForOperation`) instead of being passed in — the query's
+ * selection set selects matching mocks from the graph.
+ *
+ * ```ts
+ * const mocks = buildMocks(schema);
+ * const awardMock = mockOperationFromPool(mocks, AwardByIdQuery);
+ * ```
+ */
+export function mockOperationFromPool<TData, TVars>(
+  mocks: OperationDataSource,
+  operation: TypedDocumentNode<TData, TVars>,
+  options: MockOperationOptions<TVars> = {},
+): MockedResponse<TData, TVars> {
+  const data = mocks.dataForOperation(operation, variablesForData(options.variables) as never);
+  return mockOperation(operation, data, options);
+}
+
+/**
+ * Like {@link mockOperationVariants}, but the success data is resolved automatically from a
+ * `MockResult` pool instead of being passed in.
+ */
+export function mockOperationVariantsFromPool<TData, TVars>(
+  mocks: OperationDataSource,
+  operation: TypedDocumentNode<TData, TVars>,
+  options: MockOperationOptions<TVars> = {},
+): MockOperationVariants<TData, TVars> {
+  const data = mocks.dataForOperation(operation, variablesForData(options.variables) as never);
+  return mockOperationVariants(operation, data, options);
 }

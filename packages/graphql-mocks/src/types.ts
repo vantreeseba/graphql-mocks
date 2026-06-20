@@ -1,4 +1,6 @@
 import type { Faker } from '@faker-js/faker';
+import type { TypedDocumentNode } from '@graphql-typed-document-node/core';
+import type { DocumentNode } from 'graphql';
 
 export type ScalarMocker = (faker: Faker) => unknown;
 /**
@@ -95,6 +97,19 @@ export interface MockHelpers<TTypes extends Record<string, unknown> = Record<str
     predicate: (item: TTypes[K]) => boolean,
   ): TTypes[K] | undefined;
   find<T = unknown>(typeName: string, predicate: (item: T) => boolean): T | undefined;
+  /**
+   * Resolve a query or mutation against the mock graph and return its data shaped to the
+   * selection set — no need to assemble the result by hand. Root fields are drawn from the
+   * pools by their return type; nested fields follow the already-wired object references.
+   * With a `TypedDocumentNode` the return type is inferred from the document.
+   *
+   * Variables don't affect which mocks are chosen; pass them only if your schema requires
+   * them for execution (required variables are otherwise auto-filled with placeholders).
+   */
+  dataForOperation<TData = unknown, TVars = Record<string, unknown>>(
+    document: TypedDocumentNode<TData, TVars> | DocumentNode,
+    variables?: TVars extends Record<string, unknown> ? Partial<TVars> : Record<string, unknown>,
+  ): TData;
   /**
    * Build a resolver map keyed by type name, each returning a random pooled instance.
    * Type names declared in `TTypes` come back typed (`resolvers.User()` is `TTypes['User']`)

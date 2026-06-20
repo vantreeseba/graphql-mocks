@@ -1,4 +1,9 @@
-export { mockOperation, mockOperationVariants } from './apolloMocks.js';
+export {
+  mockOperation,
+  mockOperationFromPool,
+  mockOperationVariants,
+  mockOperationVariantsFromPool,
+} from './apolloMocks.js';
 export type {
   MockedResponse,
   MockOperationOptions,

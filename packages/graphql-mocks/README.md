@@ -111,45 +111,61 @@ const user2 = mocks.find<User>('User', (u) => u.id === targetId);
 const resolvers = mocks.toResolvers();
 // { User: () => <random User from pool>, Todo: () => <random Todo>, ... }
 addMocksToSchema({ schema, mocks: resolvers });
+
+// Resolve a query/mutation against the graph — data is shaped to the selection set.
+// Root fields are picked from the pools by return type; nested fields follow the
+// already-wired references. No need to assemble the response by hand.
+const data = mocks.dataForOperation(UserByIdQuery);
+// { user: { id, name, posts: [{ id, author: { id } }] } } — exactly the fields queried
 ```
+
+`dataForOperation` understands lists, fragments, and interface/union fields (resolved via each mock's `__typename`). Variables don't influence which mocks are chosen, so they're optional — any required ones are auto-filled with placeholders just so execution succeeds. With a `TypedDocumentNode` the return type is inferred from the document.
 
 ## Apollo `MockedProvider`
 
-`mockOperation` turns a `TypedDocumentNode` (query **or** mutation) plus its result data into a single entry for Apollo's `MockedProvider` `mocks` array — no hand-written `request`/`result` boilerplate. The result/variables types are inferred from the document, so `data` is type-checked against the operation's result type.
+These helpers turn a `TypedDocumentNode` into an entry for Apollo's `MockedProvider` `mocks` array — no hand-written `request`/`result` boilerplate.
 
-```ts
+The `*FromPool` variants need **no data argument at all**: they resolve the result straight from a `MockResult` graph (via `dataForOperation`), so the query's own selection set decides which mocks come back. Point them at the same `mocks` you built from the schema:
+
+```tsx
 import { MockedProvider } from '@apollo/client/testing';
-import { mockOperation } from '@vantreeseba/graphql-mocks';
+import { buildMocks, mockOperationFromPool } from '@vantreeseba/graphql-mocks';
 import { AwardByIdQuery } from './graphql';
 
-const mocks = [
-  mockOperation(AwardByIdQuery, { award: mockAwards[0], __typename: 'Query' }),
-];
+const mocks = buildMocks<SchemaTypeMap>(schema);
 
 render(
-  <MockedProvider mocks={mocks}>
-    <AwardCard id={mockAwards[0].id} />
+  <MockedProvider mocks={[mockOperationFromPool(mocks, AwardByIdQuery)]}>
+    <AwardCard />
   </MockedProvider>,
 );
 ```
 
-By default the mock matches **any** variables and may be used any number of times (`maxUsageCount: Infinity`). Override per call when you need exact matching, a delay, or an error:
+Prefer to supply the data yourself? `mockOperation` takes the result data directly; the result/variables types are inferred from the document, so `data` is type-checked against the operation's result type:
 
 ```ts
-mockOperation(AwardByIdQuery, data, {
+import { mockOperation } from '@vantreeseba/graphql-mocks';
+
+mockOperation(AwardByIdQuery, { award: mockAwards[0], __typename: 'Query' });
+```
+
+By default a mock matches **any** variables and may be used any number of times (`maxUsageCount: Infinity`). Override per call when you need exact matching, a delay, or an error (the same `options` apply to every helper here):
+
+```ts
+mockOperationFromPool(mocks, AwardByIdQuery, {
   variables: { id: 'Award-0' }, // exact match (or a predicate (vars) => boolean)
   delay: 50,
   maxUsageCount: 1,
 });
 ```
 
-For the common "success / loading / error" trio, `mockOperationVariants` returns all three at once:
+For the common "success / loading / error" trio, `mockOperationVariants` (data passed in) and `mockOperationVariantsFromPool` (data from the graph) return all three at once:
 
 ```ts
-import { mockOperationVariants } from '@vantreeseba/graphql-mocks';
+import { mockOperationVariantsFromPool } from '@vantreeseba/graphql-mocks';
 
-const m = mockOperationVariants(AwardByIdQuery, data);
-m.withResults;      // resolves with data
+const m = mockOperationVariantsFromPool(mocks, AwardByIdQuery);
+m.withResults;      // resolves with data drawn from the pool
 m.withLongLoadTime; // stays pending — drive loading states
 m.withError;        // rejects with an error naming the operation
 ```
